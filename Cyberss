@@ -1,0 +1,346 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>CyberRange — 2FA/MFA Trainer</title>
+<style>
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,monospace,sans-serif; }
+  body { background:#0a0e14; color:#c9d1d9; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+  header { background:#0d1117; padding:12px 16px; border-bottom:1px solid #1f6feb44;
+           display:flex; justify-content:space-between; align-items:center; }
+  header b { color:#58a6ff; font-size:17px; }
+  .dot { color:#3fb950; font-size:11px; }
+  nav { display:flex; background:#0d1117; border-bottom:1px solid #21262d; overflow-x:auto; }
+  nav button { flex:1; min-width:70px; padding:11px 0; background:none; border:none; color:#8b949e;
+               font-size:12px; font-weight:bold; }
+  nav button.on { color:#58a6ff; border-bottom:2px solid #58a6ff; }
+  main { flex:1; overflow-y:auto; padding:14px; }
+  .view { display:none; } .view.on { display:block; }
+  .card { background:#0d1117; border:1px solid #21262d; border-radius:12px;
+          padding:14px; margin-bottom:12px; }
+  .card h3 { color:#58a6ff; font-size:15px; margin-bottom:6px; }
+  .card p, .card li { font-size:13px; line-height:1.6; color:#8b949e; }
+  .card ul { padding-left:18px; margin-top:6px; }
+  .btn { display:block; width:100%; padding:13px; margin:8px 0; border:none;
+         border-radius:10px; font-size:15px; font-weight:bold; }
+  .btn-red { background:#da3633; color:#fff; }
+  .btn-blue { background:#1f6feb; color:#fff; }
+  .btn-green { background:#238636; color:#fff; }
+  .btn-grey { background:#21262d; color:#c9d1d9; border:1px solid #30363d; }
+  .term { background:#010409; border:1px solid #21262d; border-radius:10px;
+          padding:12px; font-family:monospace; font-size:12px; line-height:1.8;
+          min-height:140px; max-height:260px; overflow-y:auto; white-space:pre-wrap; color:#3fb950; }
+  .bad { color:#f85149; } .info { color:#58a6ff; } .warn { color:#d29922; }
+  .prog { height:6px; background:#21262d; border-radius:3px; margin-top:8px; }
+  .prog i { display:block; height:100%; background:#238636; border-radius:3px; }
+  .diff { font-size:10px; padding:2px 8px; border-radius:10px; margin-left:6px; }
+  .d1 { background:#23863633; color:#3fb950; } .d2 { background:#d2992233; color:#d29922; }
+  .d3 { background:#da363333; color:#f85149; }
+  details { margin-bottom:8px; }
+  summary { color:#58a6ff; font-size:14px; font-weight:bold; padding:10px;
+            background:#0d1117; border:1px solid #21262d; border-radius:10px; }
+  .mod-body { padding:10px 4px; }
+  .mod-body li { margin-bottom:5px; }
+  select, input[type=text] { width:100%; padding:11px; margin:6px 0; background:#010409;
+    color:#c9d1d9; border:1px solid #30363d; border-radius:8px; font-size:14px; }
+  .toggle { display:flex; justify-content:space-between; align-items:center;
+            padding:10px; background:#010409; border:1px solid #30363d; border-radius:8px; margin:6px 0; }
+  .toggle span { font-size:13px; }
+  .sw { width:46px; height:26px; border-radius:13px; background:#30363d; position:relative; cursor:pointer; }
+  .sw::after { content:''; position:absolute; top:3px; left:3px; width:20px; height:20px;
+               border-radius:50%; background:#8b949e; transition:.2s; }
+  .sw.on { background:#238636; } .sw.on::after { left:23px; background:#fff; }
+  .verdict { padding:16px; border-radius:12px; text-align:center; font-size:18px;
+             font-weight:bold; display:none; margin:12px 0; }
+  .pass { background:#23863633; color:#3fb950; border:1px solid #3fb950; }
+  .fail { background:#da363333; color:#f85149; border:1px solid #f85149; }
+  .quiz-opt { display:block; width:100%; text-align:left; padding:11px; margin:6px 0;
+              background:#010409; color:#c9d1d9; border:1px solid #30363d; border-radius:8px; font-size:13px; }
+  .lb-row { display:flex; justify-content:space-between; padding:9px;
+            border-bottom:1px solid #21262d; font-size:14px; }
+  .path-head { color:#d29922; font-size:13px; font-weight:bold; margin:14px 0 8px;
+               text-transform:uppercase; letter-spacing:1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <b>🛡️ CyberRange</b>
+  <span class="dot">● LAB MODE</span>
+</header>
+
+<nav>
+  <button class="on" onclick="go(0,this)">📊 Home</button>
+  <button onclick="go(1,this)">📚 Learn</button>
+  <button onclick="go(2,this)">🔬 Lab</button>
+  <button onclick="go(3,this)">🏆 Squad</button>
+  <button onclick="go(4,this)">🌐 Live</button>
+</nav>
+
+<main>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="view on">
+  <div class="card">
+    <h3 id="greet">Welcome, Operator</h3>
+    <p>2FA/MFA Red vs Blue training — SRM Cyber Range.</p>
+    <div class="prog"><i id="progBar" style="width:0%"></i></div>
+    <p id="progTxt" style="margin-top:6px">Progress: 0%</p>
+    <p style="margin-top:4px">⭐ Score: <b id="dashScore" style="color:#d29922">0</b> pts</p>
+  </div>
+  <div class="card">
+    <h3>📍 Learning Paths</h3>
+    <ul>
+      <li>🟢 <b>Foundations</b> — Modules 1–4 (factors, 2FA vs MFA, TOTP, backup codes)</li>
+      <li>🟡 <b>Defender Track</b> — Modules 5–7 (rate limiting, recovery, sessions)</li>
+      <li>🔴 <b>Adversary Track</b> — Module 8 + all Lab scenarios</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>⚠️ Rules of Engagement — SRM Cyber Range</h3>
+    <ul>
+      <li>🏛️ <b>Scope:</b> SRM-owned domains, lab servers, and accounts
+          designated by the course instructor.</li>
+      <li>📜 <b>External targets:</b> Only platforms covered by SRM's written
+          agreements may be used for live demonstrations.</li>
+      <li>🔬 Everything else stays in the simulated Lab environment.</li>
+      <li>🚫 Personal accounts, classmates' accounts, and out-of-scope
+          services are strictly off-limits.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== LEARN ===== -->
+<div class="view">
+  <div class="path-head">🟢 Foundations</div><div id="pathA"></div>
+  <div class="path-head">🟡 Defender Track</div><div id="pathB"></div>
+  <div class="path-head">🔴 Adversary Track</div><div id="pathC"></div>
+</div>
+
+<!-- ===== LAB ===== -->
+<div class="view">
+  <div class="card">
+    <h3>🔬 Lab: Request C Replay Attack</h3>
+    <p>An attacker captured <b>Request C</b> (a login request) and replays it
+       against the server. <b>Your job:</b> configure the defenses below,
+       run the attack, and get a <b style="color:#3fb950">PASS</b> (access denied).</p>
+  </div>
+  <div class="card">
+    <h3>🎛 Simulation Controls</h3>
+    <div class="toggle"><span>🔐 Enforce MFA on API endpoints</span>
+      <div class="sw on" id="swMFA" onclick="this.classList.toggle('on')"></div></div>
+    <div class="toggle"><span>🚦 Rate limiting (5 attempts)</span>
+      <div class="sw on" id="swRate" onclick="this.classList.toggle('on')"></div></div>
+    <div class="toggle"><span>🍪 Session binding (device fingerprint)</span>
+      <div class="sw on" id="swBind" onclick="this.classList.toggle('on')"></div></div>
+    <select id="mfaType">
+      <option value="totp">MFA Type: TOTP (authenticator app)</option>
+      <option value="passkey">MFA Type: Passkey / FIDO2 (phishing-resistant)</option>
+      <option value="sms">MFA Type: SMS code (weakest)</option>
+      <option value="push">MFA Type: Push approval</option>
+    </select>
+  </div>
+  <button class="btn btn-red" onclick="runAttack()">▶ RUN ATTACK (replay Request C)</button>
+  <button class="btn btn-grey" id="retestBtn" style="display:none" onclick="runAttack()">🔁 RE-TEST</button>
+  <div class="card">
+    <h3>📡 Request / Response Viewer</h3>
+    <div class="term" id="labLog">server:~$ idle — configure defenses, then run the attack.</div>
+  </div>
+  <div class="verdict" id="verdict"></div>
+  <div class="card">
+    <h3>🧑‍💻 Defense Code Viewer</h3>
+    <details><summary>server/auth.py (pseudo-code)</summary>
+    <div class="term" style="min-height:0">def handle_request(req):
+  if not session_valid(req):
+    return 401 "No session"
+  <span class="info">if MFA_ENFORCED and not req.mfa_assertion:</span>
+    <span class="info">  return 403 "MFA required"</span>
+  <span class="info">if totp_age(req.code) > 30s:</span>
+    <span class="info">  return 403 "Code expired"</span>
+  <span class="info">if rate_limiter.exceeded(req.ip):</span>
+    <span class="info">  return 429 "Too many attempts"</span>
+  <span class="info">if session.device != req.device:</span>
+    <span class="info">  return 403 "Device mismatch"</span>
+  return 200 "OK"</div></details>
+  </div>
+</div>
+
+<!-- ===== SQUAD ===== -->
+<div class="view">
+  <div class="card">
+    <h3>🏆 Squad Leaderboard</h3>
+    <p>Local leaderboard — students enter a callsign to join.
+       Points: module +10 · quiz +5 · lab PASS +20.</p>
+    <input type="text" id="callsign" placeholder="Enter your callsign..." maxlength="16">
+    <button class="btn btn-blue" onclick="joinSquad()">JOIN / CLAIM MY SCORE</button>
+    <div id="lb"></div>
+  </div>
+  <div class="card">
+    <h3>📤 Share Result</h3>
+    <button class="btn btn-green" onclick="shareScore()">COPY MY RESULT TO CLIPBOARD</button>
+    <p>Paste it into your class chat to flex. 😎</p>
+  </div>
+</div>
+
+<!-- ===== LIVE ===== -->
+<div class="view">
+  <div class="card">
+    <h3>🌐 Live Practice — SRM Authorized Targets</h3>
+    <p>Live exercises use only infrastructure where SRM holds
+       written authorization:</p>
+  </div>
+  <div class="card"><h3>🏛️ SRM Lab Domain</h3>
+    <p>Our own college domain and servers — phishing sims, MFA attacks,
+       and defense exercises run here with full institutional approval.
+       GoPhish campaigns target SRM-designated demo mailboxes only.</p></div>
+  <div class="card"><h3>🎯 Microsoft 365 Attack Simulation Training</h3>
+    <p>Phishing + MFA simulations against SRM's own tenant accounts,
+       sanctioned by Microsoft.</p></div>
+  <div class="card"><h3>🧃 OWASP Juice Shop / DVWA</h3>
+    <p>Intentionally vulnerable apps hosted on the SRM lab domain —
+       unrestricted live practice.</p></div>
+  <div class="card"><h3>📜 The Golden Rule</h3>
+    <p>If a target isn't named in the written scope — it doesn't get tested.
+       Authorization is what separates a security professional from an intruder.</p></div>
+</div>
+
+</main>
+
+<script>
+/* ================= STATE ================= */
+let S = JSON.parse(localStorage.getItem('cr') || '{"score":0,"done":[],"quiz":[],"squad":{}}');
+function save(){ localStorage.setItem('cr', JSON.stringify(S)); refresh(); }
+function refresh(){
+  const pct = Math.round((S.done.length + S.quiz.length) / 16 * 100);
+  progBar.style.width = pct+'%';
+  progTxt.textContent = 'Progress: ' + pct + '%';
+  dashScore.textContent = S.score;
+  renderLB();
+}
+
+/* ================= NAV ================= */
+const views = document.querySelectorAll('.view');
+function go(n, btn) {
+  views.forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
+  views[n].classList.add('on'); btn.classList.add('on');
+}
+
+/* ================= MODULES + QUIZ ================= */
+const MODS = [
+ {p:'A',d:1,t:"1. Authentication Factors",c:["KNOW — password, PIN","HAVE — phone, hardware key","ARE — fingerprint, face","MFA = 2+ DIFFERENT types","⚠️ Password + security question = still ONE factor"],
+  q:{q:"Password + security question counts as…",o:["Two factors","One factor type (know)","Zero factors"],a:1}},
+ {p:'A',d:1,t:"2. 2FA vs MFA",c:["2FA = exactly two factors (subset of MFA)","MFA = any 2+ combination","MFA stops most credential-stuffing","⚠️ Not all MFA equal: passkeys beat typeable codes"],
+  q:{q:"The most phishing-resistant MFA is…",o:["SMS codes","TOTP app","Passkey / FIDO2"],a:2}},
+ {p:'A',d:2,t:"3. OTP / TOTP Concepts",c:["Shared secret seed + 30-second window = 6-digit code","Codes expire fast → short replay window","⚠️ Can still be phished/relayed in real time","HOTP = counter-based variant"],
+  q:{q:"A TOTP code stays valid for about…",o:["30 seconds","10 minutes","24 hours"],a:0}},
+ {p:'A',d:2,t:"4. Backup Codes",c:["One-time recovery codes from MFA setup","Store offline/printed — treat like passwords","Each works ONCE","⚠️ Phishers ask for them directly"],
+  q:{q:"Backup codes should be stored…",o:["In cloud photos","Offline / printed","In your email drafts"],a:1}},
+ {p:'B',d:2,t:"5. Rate Limiting",c:["Lock after N failures (e.g. 5)","Exponential backoff","Alert on push-spam patterns","Without it, 6-digit TOTP = brute-forceable (1M combos)"],
+  q:{q:"Rate limiting primarily stops…",o:["Brute-force / MFA guessing","Phishing emails","SIM swaps"],a:0}},
+ {p:'B',d:2,t:"6. Recovery Flows",c:["Recovery is where MFA often dies","⚠️ Email-only recovery → email takeover = full takeover","⚠️ Weak help-desk checks → social engineering","Good: MFA-equivalent proof + delay + alerts"],
+  q:{q:"The weakest recovery design is…",o:["Hardware key + wait period","Email-link only","In-person verification"],a:1}},
+ {p:'B',d:3,t:"7. Session Security",c:["MFA protects LOGIN; sessions protect everything after","⚠️ Stolen cookie = MFA never re-asked","Defenses: short lifetimes, device binding, revoke on change","Cookies: Secure, HttpOnly, SameSite"],
+  q:{q:"A stolen session cookie bypasses…",o:["The password only","The MFA re-prompt","Nothing"],a:1}},
+ {p:'C',d:3,t:"8. Common Implementation Weaknesses",c:["SMS → SIM swap / SS7","TOTP → real-time phishing relay","Push → fatigue bombing","MFA not enforced on API endpoints (the Request C bug!)","Backup codes in plaintext"],
+  q:{q:"The 'Request C' bug is…",o:["MFA missing on an API endpoint","A weak password","An expired cookie"],a:0}},
+];
+
+function renderMods(){
+  ['A','B','C'].forEach(p=>document.getElementById('path'+p).innerHTML='');
+  MODS.forEach((m,i)=>{
+    const stars = '<span class="diff d'+m.d+'">'+'★'.repeat(m.d)+'</span>';
+    const quizDone = S.quiz.includes(i);
+    const d = document.createElement('details');
+    d.innerHTML = `<summary>${m.t} ${stars} ${S.done.includes(i)?'✅':''} ${quizDone?'🧠':''}</summary>
+      <div class="mod-body"><ul>${m.c.map(l=>`<li>${l}</li>`).join('')}</ul>
+      <button class="btn btn-green" onclick="mod(${i})">✔ Complete (+10)</button>
+      <p style="margin:10px 0 4px;color:#d29922"><b>🧠 Knowledge Check (+5)</b></p>
+      <p style="color:#c9d1d9">${m.q.q}</p>
+      ${m.q.o.map((o,j)=>`<button class="quiz-opt" onclick="quiz(${i},${j},this)">${o}</button>`).join('')}
+      </div>`;
+    document.getElementById('path'+m.p).appendChild(d);
+  });
+}
+function mod(i){ if(!S.done.includes(i)){ S.done.push(i); S.score+=10; } save(); renderMods(); }
+function quiz(i,j,btn){
+  if(S.quiz.includes(i)) return;
+  if(j===MODS[i].q.a){ S.quiz.push(i); S.score+=5; btn.style.borderColor='#3fb950'; btn.style.color='#3fb950'; }
+  else { btn.style.borderColor='#f85149'; btn.style.color='#f85149'; }
+  save(); renderMods();
+}
+
+/* ================= LAB ================= */
+let busy=false, passed=false;
+function L(html,ms){ return new Promise(r=>setTimeout(()=>{ labLog.innerHTML+=html+'\n'; labLog.scrollTop=1e6; r(); },ms||350)); }
+async function runAttack(){
+  if(busy) return; busy=true; verdict.style.display='none';
+  const mfa = swMFA.classList.contains('on'), rate = swRate.classList.contains('on'),
+        bind = swBind.classList.contains('on'), type = mfaType.value;
+  labLog.innerHTML='';
+  await L('<span class="info">[ATTACKER] Replaying captured Request C → POST /api/account/settings</span>',300);
+  await L('  Cookie: session=STOLEN_COOKIE_9f2',250);
+  await L('  (no fresh MFA assertion — just a replay)',250);
+  await L('<span class="info">[SERVER] ── evaluating ──</span>',400);
+  let blocked=false;
+  if(!mfa){
+    await L('<span class="bad">→ MFA_ENFORCED = false … skipping MFA check ⚠️</span>',400);
+  } else {
+    await L('→ MFA assertion check… <span class="warn">MISSING</span>',400);
+    if(type==='passkey'){ await L('→ Passkey required: origin-bound challenge. Replay impossible. <span class="bad">⛔ 403</span>',450); blocked=true; }
+    else { await L(`→ ${type.toUpperCase()} code in replay is outside validity window… <span class="bad">⛔ 403 EXPIRED</span>`,450); blocked=true; }
+    if(type==='sms') await L('<span class="warn">  note: SMS would still be SIM-swappable — upgrade to app/passkey</span>',300);
+    if(type==='push') await L('<span class="warn">  note: enable number matching to stop push fatigue</span>',300);
+  }
+  if(!blocked && bind){
+    await L('→ Device fingerprint mismatch vs. bound session… <span class="bad">⛔ 403 DEVICE MISMATCH</span>',450);
+    blocked=true;
+  }
+  if(!blocked && !rate){
+    await L('<span class="bad">→ No rate limiter — attacker brute-forces 6-digit code…</span>',400);
+    await L('<span class="bad">  attempt 412,307 … CODE MATCHED 😱</span>',500);
+  } else if(!blocked && rate){
+    await L('→ Attempt 6 from 203.0.113.7 — <span class="bad">⛔ 429 RATE LIMITED, account locked</span>',450);
+    blocked=true;
+  }
+  await L('<span class="info">[SERVER] ── verdict ──</span>',400);
+  verdict.style.display='block';
+  if(blocked){
+    verdict.className='verdict pass';
+    verdict.innerHTML='✅ VERIFICATION: PASS — Unauthorized access DENIED<br><span style="font-size:13px">+20 pts. The defense held. 🛡️</span>';
+    if(!passed){ passed=true; S.score+=20; save(); }
+    await L('<span style="color:#3fb950">⛔ ACCESS DENIED. Session revoked. Admin alerted. 🔔</span>',300);
+  } else {
+    verdict.className='verdict fail';
+    verdict.innerHTML='❌ VERIFICATION: FAIL — Attacker got in (200 OK)<br><span style="font-size:13px">Fix the toggles above and hit RE-TEST. 🔁</span>';
+    await L('<span class="bad">⚠️ HTTP 200 — attacker modified account settings.</span>',300);
+  }
+  retestBtn.style.display='block'; busy=false;
+}
+
+/* ================= SQUAD ================= */
+function joinSquad(){
+  const n = callsign.value.trim(); if(!n) return;
+  S.squad[n] = Math.max(S.squad[n]||0, S.score);
+  greet.textContent = 'Welcome, ' + n;
+  save();
+}
+function renderLB(){
+  const rows = Object.entries(S.squad).sort((a,b)=>b[1]-a[1]);
+  lb.innerHTML = rows.length
+    ? rows.map((r,i)=>`<div class="lb-row"><span>${['🥇','🥈','🥉'][i]||'▫️'} ${r[0]}</span><b style="color:#d29922">${r[1]}</b></div>`).join('')
+    : '<p style="padding:8px">No operators yet — be the first.</p>';
+}
+function shareScore(){
+  const txt = `🛡️ CyberRange result: ${S.score} pts · ${S.done.length}/8 modules · ${S.quiz.length}/8 checks · Lab ${passed?'PASS ✅':'not passed yet'}`;
+  navigator.clipboard && navigator.clipboard.writeText(txt);
+  alert('Copied! Paste it in your class chat. 📋');
+}
+
+renderMods(); refresh();
+</script>
+</body>
+</html>
+```
